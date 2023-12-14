@@ -158,5 +158,7 @@ cython_debug/
 # MacOS
 .DS_Store
 
-# Dataset
+# Project
 data
+saved_models
+plots

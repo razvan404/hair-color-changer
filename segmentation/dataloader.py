@@ -49,7 +49,7 @@ class LfwDataset(Dataset):
         return len(self._image_path_pairs)
 
 
-def get_dataloader(path: str, split: str, **kwargs) -> DataLoader:
+def get_dataloader(path: str, split: str, batch_size: int, shuffle: bool) -> DataLoader:
     image_transform = transforms.Compose(
         [
             transforms.ToTensor(),
@@ -69,5 +69,7 @@ def get_dataloader(path: str, split: str, **kwargs) -> DataLoader:
     dataset = LfwDataset(path, split, image_transform, mask_transform)
     return DataLoader(
         dataset,
-        **kwargs,
+        batch_size=batch_size,
+        shuffle=shuffle,
+        pin_memory=True,
     )

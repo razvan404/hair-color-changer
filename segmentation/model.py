@@ -14,14 +14,33 @@ def TwoConv2d(in_channels: int, out_channels: int) -> nn.Module:
     )
 
 
+class UpSamplingBlock(nn.Module):
+    def __init__(self, in_channels: int, skip_channels: int, out_channels: int):
+        super(UpSamplingBlock, self).__init__()
+        self.convT = nn.ConvTranspose2d(in_channels, out_channels, 2, 2)
+        self.conv = TwoConv2d(skip_channels + out_channels, out_channels)
+
+    def forward(self, inputs: (torch.Tensor, torch.Tensor)):
+        skip_connection, x = inputs
+        x = self.convT(x)
+        if x.shape != skip_connection.shape:
+            x = F.resize(x, size=skip_connection.shape[2:], antialias=True)
+        x = torch.cat((skip_connection, x), dim=1)
+        x = self.conv(x)
+        return x
+
+
 class SegmentationUNet(nn.Module):
     def __init__(
         self,
         in_channels: int,
         out_channels: int,
-        features: list[int] = [64, 128, 256, 512],
+        features: list[int] = None,
     ):
         super(SegmentationUNet, self).__init__()
+        if features is None:
+            features = [64, 128, 256, 512]
+
         self.down_sampling = nn.ModuleList()
         for feature in features:
             self.down_sampling.append(TwoConv2d(in_channels, feature))
@@ -32,8 +51,7 @@ class SegmentationUNet(nn.Module):
 
         self.up_sampling = nn.ModuleList()
         for feature in reversed(features):
-            self.up_sampling.append(nn.ConvTranspose2d(feature * 2, feature, 2, 2))
-            self.up_sampling.append(TwoConv2d(feature * 2, feature))
+            self.up_sampling.append(UpSamplingBlock(feature * 2, feature, feature))
 
         self.last_conv = nn.Conv2d(features[0], out_channels, 1)
         self.num_features = len(features)
@@ -46,12 +64,8 @@ class SegmentationUNet(nn.Module):
             x = self.max_pool(x)
         skip_connections.reverse()
         x = self.bottleneck(x)
-        for i in range(self.num_features):
-            x = self.up_sampling[2 * i](x)
-            if x.shape != skip_connections[i].shape:
-                F.resize(x, size=skip_connections[i].shape[2:])
-            x = torch.cat((skip_connections[i], x), dim=1)
-            x = self.up_sampling[2 * i + 1](x)
+        for skip_connection, layer in zip(skip_connections, self.up_sampling):
+            x = layer((skip_connection, x))
         x = self.last_conv(x)
         return x
 
