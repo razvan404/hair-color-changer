@@ -21,7 +21,7 @@ def save_checkpoint(state, filename: str):
     torch.save(state, filename)
 
 
-def load_checkpoint(filename: str, model: nn.Module):
+def load_checkpoint(model: nn.Module, filename: str):
     print("=> Loading checkpoint")
     model.load_state_dict(torch.load(filename))
 
@@ -32,3 +32,10 @@ def binary_predictions(raw_preds: torch.Tensor) -> torch.Tensor:
 
 def multiclass_predictions(raw_preds: torch.Tensor) -> torch.Tensor:
     return torch.argmax(raw_preds, dim=1)
+
+
+def save_to_binaries(model: nn.Module, filename: str):
+    print("=> Saving binary model")
+    model.eval()
+    scripted_model = torch.jit.script(model)
+    scripted_model.save(filename)

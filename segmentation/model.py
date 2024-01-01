@@ -20,8 +20,7 @@ class UpSamplingBlock(nn.Module):
         self.convT = nn.ConvTranspose2d(in_channels, out_channels, 2, 2)
         self.conv = TwoConv2d(skip_channels + out_channels, out_channels)
 
-    def forward(self, inputs: (torch.Tensor, torch.Tensor)):
-        skip_connection, x = inputs
+    def forward(self, skip_connection: torch.Tensor, x: torch.Tensor):
         x = self.convT(x)
         if x.shape != skip_connection.shape:
             x = F.resize(x, size=skip_connection.shape[2:], antialias=True)
@@ -64,8 +63,8 @@ class SegmentationUNet(nn.Module):
             x = self.max_pool(x)
         skip_connections.reverse()
         x = self.bottleneck(x)
-        for skip_connection, layer in zip(skip_connections, self.up_sampling):
-            x = layer((skip_connection, x))
+        for i, layer in enumerate(self.up_sampling):
+            x = layer(skip_connections[i], x)
         x = self.last_conv(x)
         return x
 
