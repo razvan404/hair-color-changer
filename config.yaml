@@ -1,12 +1,12 @@
 segmentation:
-  experiment: 2
+  experiment: 1
   learning_rate: 0.0001
   batch_size: 32
   epochs: 10
   load_model: false
-  dataset_path: "data/lfw"
-  save_model_path: "saved_models/model_id2.pt"
-  save_model_binaries_path: "saved_models/model_bin_id2.pt"
-  plots_path: "plots"
+  dataset_path: "..\\data\\lfw"
+  save_model_path: "..\\saved_models\\model_id2.pt"
+  save_model_binaries_path: "..\\saved_models\\model_bin_id2.pt"
+  plots_path: "..\\plots"
 demo:
-  model_path: "../saved_models/model_bin_id2.pt"
+  model_path: "..\\saved_models\\model_bin_id2.pt"

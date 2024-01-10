@@ -38,7 +38,7 @@ class SegmentationUNet(nn.Module):
     ):
         super(SegmentationUNet, self).__init__()
         if features is None:
-            features = [64, 128, 256, 512]
+            features = [32, 64, 128, 256]
 
         self.down_sampling = nn.ModuleList()
         for feature in features:

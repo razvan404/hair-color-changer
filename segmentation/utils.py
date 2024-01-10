@@ -8,7 +8,7 @@ from .dataloader import get_dataloader
 def get_dataloaders(
     dataset_path: str, batch_size: int
 ) -> (DataLoader, DataLoader, DataLoader):
-    train_dataloader = get_dataloader(dataset_path, "train", batch_size, True)
+    train_dataloader = get_dataloader(dataset_path, "train", batch_size, True, 5)
     validation_dataloader = get_dataloader(
         dataset_path, "validation", batch_size, False
     )

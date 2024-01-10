@@ -3,6 +3,7 @@ import os
 import cv2
 
 import numpy as np
+import torch
 
 from torch.utils.data import Dataset, DataLoader
 from torchvision import transforms
@@ -49,7 +50,18 @@ class LfwDataset(Dataset):
         return len(self._image_path_pairs)
 
 
-def get_dataloader(path: str, split: str, batch_size: int, shuffle: bool) -> DataLoader:
+def extract_hair(mask: np.ndarray) -> np.ndarray:
+    mask = np.argmax(mask, axis=2) == 0
+    return mask
+
+
+def to_float(x: torch.Tensor) -> torch.Tensor:
+    return x.float()
+
+
+def get_dataloader(
+    path: str, split: str, batch_size: int, shuffle: bool, num_workers: int = 0
+) -> DataLoader:
     image_transform = transforms.Compose(
         [
             transforms.ToTensor(),
@@ -57,13 +69,13 @@ def get_dataloader(path: str, split: str, batch_size: int, shuffle: bool) -> Dat
             transforms.Resize((240, 240), antialias=True),
         ]
     )
+
     mask_transform = transforms.Compose(
         [
-            transforms.Lambda(lambda mask: np.argmax(mask, axis=2)),
-            np.vectorize(lambda x: 1 if x == 0 else 0),
+            transforms.Lambda(extract_hair),
             transforms.ToTensor(),
             transforms.Resize((240, 240), antialias=True),
-            transforms.Lambda(lambda x: x.float()),
+            transforms.Lambda(to_float),
         ]
     )
     dataset = LfwDataset(path, split, image_transform, mask_transform)
@@ -72,4 +84,5 @@ def get_dataloader(path: str, split: str, batch_size: int, shuffle: bool) -> Dat
         batch_size=batch_size,
         shuffle=shuffle,
         pin_memory=True,
+        num_workers=num_workers,
     )

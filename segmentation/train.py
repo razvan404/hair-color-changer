@@ -8,16 +8,16 @@ import tqdm
 from torch.utils.data import DataLoader
 
 from core.config import load_config
-from .utils import (
+from segmentation.utils import (
     get_dataloaders,
     binary_predictions,
     load_checkpoint,
     save_checkpoint,
     save_to_binaries,
 )
-from .metrics import frequency_weighted_intersection_over_union
-from .model import SegmentationUNet
-from .visualizer import Visualizer
+from segmentation.metrics import frequency_weighted_intersection_over_union
+from segmentation.model import SegmentationUNet
+from segmentation.visualizer import Visualizer
 
 
 def train_step(
@@ -38,7 +38,7 @@ def train_step(
 
         # forward
         preds = model(images)
-        loss = loss_function(preds, masks).cpu()
+        loss = loss_function(preds, masks)
 
         # backward
         if optimizer is not None and scaler is not None:
@@ -51,7 +51,7 @@ def train_step(
         preds = predictions_function(preds.cpu().detach()).numpy()
         accuracy = accuracy_function(masks.cpu().numpy(), preds)
 
-        loop.set_postfix(loss=loss.item(), accuracy=accuracy)
+        loop.set_postfix(loss=loss.cpu().item(), accuracy=accuracy)
 
 
 def train():
@@ -59,6 +59,11 @@ def train():
     device = "cuda" if torch.cuda.is_available() else "cpu"
     experiment = config["experiment"]
     experiment_plots = os.path.join(config["plots_path"], f"id{experiment}")
+
+    print("Training on device:", device)
+
+    if not os.path.exists(config["plots_path"]):
+        os.mkdir(config["plots_path"])
 
     if not os.path.exists(experiment_plots):
         os.mkdir(experiment_plots)
