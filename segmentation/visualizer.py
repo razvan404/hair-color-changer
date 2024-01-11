@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 import matplotlib.pyplot as plt
 import numpy as np
+import wandb
 
 from torch.utils.data import DataLoader
 
@@ -16,6 +17,37 @@ class Visualizer:
             img = (img + 1) / 2
             img = np.clip(img, 0, 1)
         return img
+
+    @classmethod
+    def build_one_sample(
+        cls,
+        model: nn.Module,
+        dataloader: DataLoader,
+        device: str,
+        predictions_function: callable,
+    ):
+        sample_images, sample_masks = next(iter(dataloader))
+        preds = model(sample_images.to(device))
+        preds = predictions_function(preds)
+        return sample_images, sample_masks, preds
+
+    @classmethod
+    def wandb_predictions_table(
+        cls,
+        model: nn.Module,
+        dataloader: DataLoader,
+        device: str,
+        predictions_function: callable,
+    ):
+        sample_images, sample_masks, binary_preds = cls.build_one_sample(
+            model, dataloader, device, predictions_function
+        )
+        table = wandb.Table(columns=["Image", "True Mask", "Predicted Mask"])
+        for img, true_mask, pred_mask in zip(sample_images, sample_masks, binary_preds):
+            table.add_data(
+                wandb.Image(img), wandb.Image(true_mask), wandb.Image(pred_mask)
+            )
+        return table
 
     @classmethod
     def visualise_dataloader_samples(

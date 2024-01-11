@@ -159,6 +159,7 @@ cython_debug/
 .DS_Store
 
 # Project
-data
-saved_models
-plots
+data/
+saved_models/
+plots/
+wandb/

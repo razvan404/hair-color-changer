@@ -30,3 +30,11 @@ $ python segmentation/train.py
    ```bash
    $ pip install -r requirements.txt
    ```
+
+## Environment
+
+If you want to train the model locally, you should create a `.env` file in the root directory with the following entries:
+```bash
+WANDB_API_KEY=<your wandb api key>
+```
+Most of the other environmental variables are located in `config.yaml` and in `segmentation/train.py` (where `sweep_config` is located for wandb hyperparameters fine-tuning).
