@@ -91,13 +91,14 @@ def train_step(
 def train(wandb_config=None):
     with wandb.init(config=wandb_config):
         wandb_config = wandb.config
-        config = load_config("segmentation")
+        project_config = load_config("segmentation")
         device = "cuda" if torch.cuda.is_available() else "cpu"
-        experiment = config["experiment"]
+        experiment = project_config["experiment"]
+        learning_rate = wandb_config["learning_rate"]
         experiment_plots = os.path.join(
-            config["plots_path"],
-            f"id{experiment}",
-            f"lr_{str(wandb_config['learning_rate']).replace('.', '_')}",
+            project_config["plots_path"],
+            f"id_{experiment}",
+            f"lr_{str(learning_rate).replace('.', '_')}",
         )
 
         print("Training on device:", device)
@@ -106,7 +107,7 @@ def train(wandb_config=None):
             os.makedirs(experiment_plots)
 
         train_dataloader, val_dataloader, test_dataloader = get_dataloaders(
-            config["dataset_path"], config["batch_size"]
+            project_config["dataset_path"], wandb_config["batch_size"]
         )
         Visualizer.visualise_dataloader_samples(
             test_dataloader,
@@ -126,19 +127,19 @@ def train(wandb_config=None):
         checkpoint_format = "model_checkpoint_e{}"
         model_binary_format = "model_binary_e{}"
         models_path = os.path.join(
-            config["save_checkpoints_path"],
-            f"id{experiment}",
-            f"lr_{str(wandb_config["learning_rate"]).replace('.', '_')}",
+            project_config["save_checkpoints_path"],
+            f"id_{experiment}",
+            f"lr_{str(learning_rate).replace('.', '_')}",
         )
 
         if not os.path.exists(models_path):
             os.makedirs(models_path)
 
-        if (checkpoint := config["load_checkpoint"]) is not None and isinstance(
+        if (checkpoint := project_config["load_checkpoint"]) is not None and isinstance(
             checkpoint, str
         ):
             load_checkpoint(
-                model, os.path.join(config["save_checkpoints_path"], checkpoint)
+                model, os.path.join(project_config["save_checkpoints_path"], checkpoint)
             )
 
         Visualizer.visualize_model_predictions(
@@ -224,6 +225,7 @@ def sweep(api_key: str = None):
         "parameters": {
             "learning_rate": {"values": [0.01, 0.001, 0.0001]},
             "num_epochs": {"value": 5},
+            "batch_size": {"values": [32, 128]},
         },
     }
     if api_key is None:
