@@ -1,5 +1,17 @@
 # Hair Color Changer
 
+## A brief overview
+
+Built an U-NET segmentation model to learn to extract the hair of a photo of a person. Also, exported the binaries of the model and used them in a demo, using `gradio`, to extract the hair, color it yellow, then place it into the result image. To tune the hyperparameters, `wandb` was used, each can do this as well by providing a wandb API key like in the [Environment](#environment) section.
+
+## Model architecture
+
+![Model architecture](/media/unet.png)
+
+## Some validation results
+![Results Epoch 5](/media/results1.png)
+![Results Epoch 10](/media/results2.png)
+
 ## Usage
 
 To train the segmentation model, you firstly need to install one of the datasets:
@@ -13,6 +25,10 @@ After that, adjust the `config.yaml` configuration file, then you can train a mo
 ```bash
 $ python segmentation/train.py
 ```
+
+## LFW Dataset Samples
+
+![Samples](/media/samples.png)
 
 ## Setup
 
